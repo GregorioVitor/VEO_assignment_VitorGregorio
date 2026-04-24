@@ -4,3 +4,8 @@ This project was developed as part of a technical selection process. The goal wa
 ## Prerequisites
 The first step of this project was to establish a stable and isolated environment. I chose to use Docker for dependency management, ensuring that the pipeline runs consistently across different systems without library conflicts.
 
+### Docker Installation
+~~~
+sudo apt update
+sudo apt install docker.io -y
+~~~
