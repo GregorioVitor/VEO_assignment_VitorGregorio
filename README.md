@@ -26,3 +26,18 @@ Add the following text:
   "dns": ["8.8.8.8", "8.8.4.4"]
 }
 ~~~
+## Build with 
+1. Nextflow - Workflow management.
+
+2. Docker - Containerization.
+
+3. Flye - De novo assembly.
+
+4. CheckV - Viral completeness assessment.
+
+
+## Usage
+
+~~~
+nextflow run VEO_pipeline.nf --input input_file.gz --threads t --output output_folder
+~~~
