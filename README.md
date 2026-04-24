@@ -27,13 +27,10 @@ Add the following text:
 }
 ~~~
 ## Build with 
-* [Nextflow - Workflow management.]
-
-* [Docker - Containerization.]
-
-* [Flye - De novo assembly.]
-
-* [CheckV - Viral completeness assessment.]
+* Nextflow - Workflow management.
+* Docker - Containerization.
+* Flye - De novo assembly.
+* CheckV - Viral completeness assessment.
 
 
 ## Usage
