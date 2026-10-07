@@ -39,6 +39,10 @@ nextflow_pipeline {
                 assert versions.contains(key)
             }
             assert versions.count('"FLYE":') == 1
+            // Tool warnings must not leak into the YAML (MultiQC fails to parse it)
+            versions.readLines().findAll { line -> line.startsWith(' ') }.each { line ->
+                assert line.trim() ==~ /[\w\/.-]+: \d[\w.-]*/
+            }
             assert !versions.contains('CHECKV')
             assert path("$outputDir/multiqc/multiqc_report.html").text.contains('2.9.6')
         }
