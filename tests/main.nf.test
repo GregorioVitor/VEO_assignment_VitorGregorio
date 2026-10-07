@@ -1,0 +1,72 @@
+nextflow_pipeline {
+
+    name "Nanopore phage assembly pipeline"
+    script "../main.nf"
+
+    test("test profile: two lambda samples assemble and are reported") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            def assemblies = ['lambda_A', 'lambda_B'].collect { id ->
+                path("$outputDir/assembly/${id}/${id}.assembly.fasta")
+            }
+            def versions = path("$outputDir/pipeline_info/veo_software_mqc_versions.yml").text
+
+            assert workflow.success
+            assert workflow.trace.failed().size() == 0
+
+            // One assembly per sample, contigs renamed with the sample id
+            assemblies.each { fasta ->
+                assert fasta.exists()
+                assert fasta.text.startsWith('>' + fasta.fileName.toString().tokenize('.')[0] + '_contig_')
+            }
+
+            // Lambda is 48.5 kb: the longest contig should be close to that
+            def quast = path("$outputDir/qc/quast/lambda_A_quast/report.tsv").readLines()
+            def largest = quast.find { line -> line.startsWith('Largest contig') }.tokenize('\t')[1] as int
+            assert largest > 40000 && largest < 60000
+
+            assert path("$outputDir/qc/nanoplot/lambda_A_nanoplot/lambda_A_NanoStats.txt").exists()
+            assert path("$outputDir/multiqc/multiqc_report.html").exists()
+
+            // Every tool feeding the report states its version, once
+            ['"NANOPLOT":', '"FLYE":', '"QUAST":', 'Workflow:'].each { key ->
+                assert versions.contains(key)
+            }
+            assert versions.count('"FLYE":') == 1
+            assert !versions.contains('CHECKV')
+            assert path("$outputDir/multiqc/multiqc_report.html").text.contains('2.9.6')
+        }
+    }
+
+    test("stub: full workflow including CheckV database download") {
+
+        options "-stub"
+
+        when {
+            params {
+                outdir          = "$outputDir"
+                skip_checkv     = false
+                checkv_db_cache = "$outputDir/databases"
+            }
+        }
+
+        then {
+            def versions = path("$outputDir/pipeline_info/veo_software_mqc_versions.yml").text
+
+            assert workflow.success
+            assert path("$outputDir/databases/checkv_db").exists()
+            assert path("$outputDir/checkv/lambda_A_checkv").exists()
+            assert path("$outputDir/checkv/lambda_B_checkv").exists()
+            assert versions.contains('"CHECKV_DOWNLOADDATABASE":')
+            assert versions.contains('"CHECKV_ENDTOEND":')
+            // The database is downloaded once and shared by both samples
+            assert workflow.trace.tasks().count { task -> task.name.startsWith('CHECKV_DOWNLOADDATABASE') } == 1
+        }
+    }
+}
