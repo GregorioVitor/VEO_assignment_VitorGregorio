@@ -24,7 +24,7 @@ process NANOPLOT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        nanoplot: \$(NanoPlot --version 2>&1 | sed 's/^NanoPlot //')
+        nanoplot: \$(NanoPlot --version 2>&1 | grep -oE 'NanoPlot [0-9][0-9.]*' | head -n1 | cut -d' ' -f2)
     END_VERSIONS
     """
 

@@ -24,7 +24,7 @@ process QUAST {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        quast: \$(quast.py --version 2>&1 | sed 's/^.*QUAST v//; s/ .*\$//')
+        quast: \$(quast.py --version 2>&1 | grep -oE 'QUAST v[0-9][0-9.]*' | head -n1 | cut -c8-)
     END_VERSIONS
     """
 
