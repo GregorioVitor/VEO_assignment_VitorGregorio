@@ -1,0 +1,10 @@
+# Nextflow
+work/
+.nextflow/
+.nextflow.log*
+results/
+databases/
+
+# nf-test
+.nf-test/
+.nf-test.log

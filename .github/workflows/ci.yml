@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NXF_ANSI_LOG: false
+  NFT_VER: "0.9.5"
+
+jobs:
+  lint:
+    name: nextflow lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v3
+        with:
+          version: latest-stable
+      - run: nextflow lint main.nf modules conf nextflow.config
+
+  test:
+    name: nf-test (Nextflow ${{ matrix.NXF_VER }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Oldest supported version (manifest.nextflowVersion) and the current release
+        NXF_VER: ["25.10.0", "latest-stable"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v3
+        with:
+          version: ${{ matrix.NXF_VER }}
+      - name: Install nf-test
+        run: |
+          wget -qO- https://get.nf-test.com | bash -s $NFT_VER
+          sudo mv nf-test /usr/local/bin/
+      - name: Run tests
+        run: nf-test test --profile +docker --ci --verbose
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nf-test-logs-${{ matrix.NXF_VER }}
+          path: |
+            .nf-test/tests/*/meta/nextflow.log
+            .nf-test/tests/*/output/pipeline_info/
+          if-no-files-found: ignore

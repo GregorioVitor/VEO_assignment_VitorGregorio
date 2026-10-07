@@ -1,0 +1,107 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/GregorioVitor/VEO_assignment_VitorGregorio/main/nextflow_schema.json",
+    "title": "VEO_assignment_VitorGregorio pipeline parameters",
+    "description": "Nanopore phage genome assembly and QC: NanoPlot, Flye, QUAST, CheckV and MultiQC",
+    "type": "object",
+    "$defs": {
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "required": ["input", "outdir"],
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "schema": "assets/schema_input.json",
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "description": "Samplesheet (CSV) with columns `sample` and `fastq`.",
+                    "help_text": "One row per sample. Relative fastq paths are resolved against the directory that contains the samplesheet.",
+                    "fa_icon": "fas fa-file-csv"
+                },
+                "outdir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Directory where results are published.",
+                    "default": "results",
+                    "fa_icon": "fas fa-folder-open"
+                }
+            }
+        },
+        "assembly_options": {
+            "title": "Assembly options",
+            "type": "object",
+            "fa_icon": "fas fa-puzzle-piece",
+            "properties": {
+                "flye_mode": {
+                    "type": "string",
+                    "default": "nano-raw",
+                    "enum": ["nano-raw", "nano-corr", "nano-hq", "pacbio-raw", "pacbio-corr", "pacbio-hifi"],
+                    "description": "Flye read type. Use `nano-hq` for Guppy 5+ SUP or Dorado reads.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "flye_meta": {
+                    "type": "boolean",
+                    "description": "Run Flye in metagenome mode (`--meta`) for samples with uneven coverage.",
+                    "fa_icon": "fas fa-layer-group"
+                },
+                "genome_size": {
+                    "type": "string",
+                    "pattern": "^\\d+(\\.\\d+)?[kmgKMG]?$",
+                    "description": "Expected genome size passed to Flye (`--genome-size`), for example `60k`. Optional.",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                }
+            }
+        },
+        "checkv_options": {
+            "title": "CheckV options",
+            "type": "object",
+            "fa_icon": "fas fa-virus",
+            "properties": {
+                "skip_checkv": {
+                    "type": "boolean",
+                    "description": "Skip CheckV viral completeness assessment.",
+                    "fa_icon": "fas fa-forward"
+                },
+                "checkv_db": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "exists": true,
+                    "description": "Path to an existing CheckV database (the `checkv-db-v*` directory).",
+                    "help_text": "If not set, the database is downloaded once into `--checkv_db_cache` and reused by later runs.",
+                    "fa_icon": "fas fa-database"
+                },
+                "checkv_db_cache": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "default": "databases",
+                    "description": "Where the downloaded CheckV database is stored when `--checkv_db` is not set.",
+                    "fa_icon": "fas fa-hdd"
+                }
+            }
+        },
+        "generic_options": {
+            "title": "Generic options",
+            "type": "object",
+            "fa_icon": "fas fa-cogs",
+            "properties": {
+                "publish_dir_mode": {
+                    "type": "string",
+                    "default": "copy",
+                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
+                    "description": "How published files are written to `--outdir`.",
+                    "fa_icon": "fas fa-copy"
+                }
+            }
+        }
+    },
+    "allOf": [
+        { "$ref": "#/$defs/input_output_options" },
+        { "$ref": "#/$defs/assembly_options" },
+        { "$ref": "#/$defs/checkv_options" },
+        { "$ref": "#/$defs/generic_options" }
+    ]
+}
