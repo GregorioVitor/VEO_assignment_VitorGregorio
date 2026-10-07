@@ -33,7 +33,7 @@ process FLYE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        flye: \$(flye --version)
+        flye: \$(flye --version 2>/dev/null | tail -n1)
     END_VERSIONS
     """
 
